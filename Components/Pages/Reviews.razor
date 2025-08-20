@@ -1,0 +1,66 @@
+﻿@page "/reviews"
+
+<h2>Customer Reviews</h2>
+
+@if (reviews == null)
+{
+    <p>Loading reviews...</p>
+}
+else
+{
+    <div class="reviews-container">
+        @foreach (var review in reviews)
+        {
+            <div class="review-box">
+                <strong>@review.Name</strong><br />
+                <span class="review-text">@review.Text</span><br />
+                <span class="review-rating">@review.Rating/5</span>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<CustomerReview> reviews;
+
+    protected override void OnInitialized()
+    {
+        reviews = new List<CustomerReview>();
+
+        // Adjust path to point to your Data folder
+        var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\Data\Customers.csv");
+
+        if (System.IO.File.Exists(filePath))
+        {
+            var lines = System.IO.File.ReadAllLines(filePath);
+
+            foreach (var line in lines)
+            {
+                var parts = line.Split(',');
+
+                if (parts.Length == 4)
+                {
+                    reviews.Add(new CustomerReview
+                        {
+                            Id = int.Parse(parts[0]),
+                            Name = parts[1],
+                            Text = parts[2],
+                            Rating = parts[3]
+                        });
+                }
+            }
+        }
+        else
+        {
+            Console.WriteLine($"File not found: {filePath}");
+        }
+    }
+
+    public class CustomerReview
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Text { get; set; }
+        public string Rating { get; set; }
+    }
+}

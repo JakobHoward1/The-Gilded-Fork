@@ -1,0 +1,68 @@
+﻿@page "/menu"
+
+<h1>The Gilded Fork - Our Menu</h1>
+
+<div class="menu-list">
+    @if (menuItems.Count == 0)
+    {
+        <p>Loading menu...</p>
+    }
+    else
+    {
+        @foreach (var item in menuItems)
+        {
+            <div class="menu-card">
+                <h2>@item.Name</h2>
+                <p>@(string.IsNullOrEmpty(item.Category) ? "" : item.Category)</p>
+                <p class="price">@item.Price</p>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    class MenuItem
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string? Category { get; set; }
+        public string Price { get; set; }
+    }
+
+    List<MenuItem> menuItems = new();
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            // Adjust relative path to point to your Data folder
+            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\Data\MenuItems.csv");
+
+            using var stream = File.OpenRead(filePath);
+            using var reader = new StreamReader(stream);
+
+            while (!reader.EndOfStream)
+            {
+                var line = reader.ReadLine();
+                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("ID"))
+                    continue;
+
+                var parts = line.Split(',');
+                if (parts.Length >= 4)
+                {
+                    menuItems.Add(new MenuItem
+                        {
+                            Id = int.Parse(parts[0].Trim()),
+                            Name = parts[1].Trim(),
+                            Category = parts[2].Trim().Equals("Null", StringComparison.OrdinalIgnoreCase) ? null : parts[2].Trim(),
+                            Price = parts[3].Trim()
+                        });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading menu items: {ex.Message}");
+        }
+    }
+}

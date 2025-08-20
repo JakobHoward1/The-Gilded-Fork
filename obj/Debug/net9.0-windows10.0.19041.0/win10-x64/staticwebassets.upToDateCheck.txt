@@ -1,0 +1,8 @@
+C:\Users\jakob\source\repos\Group10_FinalProject\wwwroot\css\bootstrap\bootstrap.min.css
+C:\Users\jakob\source\repos\Group10_FinalProject\wwwroot\css\bootstrap\bootstrap.min.css.map
+C:\Users\jakob\source\repos\Group10_FinalProject\wwwroot\css\app.css
+C:\Users\jakob\source\repos\Group10_FinalProject\wwwroot\index.html
+wwwroot\css\app.css
+wwwroot\css\bootstrap\bootstrap.min.css
+wwwroot\css\bootstrap\bootstrap.min.css.map
+wwwroot\index.html
