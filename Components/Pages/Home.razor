@@ -35,7 +35,7 @@ else
     {
         try
         {
-            // --- Load MenuItems.csv ---
+            // Load MenuItems.csv
             var menuFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\Data\MenuItems.csv");
             var menuItems = new List<(string Category, double Price)>();
 
@@ -62,7 +62,7 @@ else
             hasVegetarian = menuItems.Any(i => i.Category.Equals("Vegetarian", StringComparison.OrdinalIgnoreCase));
             averageCost = menuItems.Any() ? Math.Round(menuItems.Average(i => i.Price), 2) : 0;
 
-            // --- Load Customers.csv ---
+            // Load Customers.csv
             var customerFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\Data\Customers.csv");
             var ratings = new List<double>();
 
