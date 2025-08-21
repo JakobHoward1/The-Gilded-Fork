@@ -2,4 +2,95 @@
 
 <h1>The Gilded Fork</h1>
 
-Welcome to The Gilded Fork! 
+<p>
+    Step into The Gilded Fork, where elegance meets comfort in every bite. Our menu features meticulously crafted dishes using the
+    finest ingredients, blending classic flavors with modern twists. Whether you're savoring a rich, hearty entrée or indulging in a
+    decadent dessert, each plate is a celebration of culinary artistry. Perfect for intimate dinners, special occasions, or a refined
+    night out, The Gilded Fork promises an unforgettable dining experience where every meal feels like a golden moment.
+</p>
+
+@if (statsLoaded)
+{
+    <div class="stats-box">
+        @if (hasVegetarian)
+        {
+            <p>Vegetarian Options</p>
+        }
+        <p>Average cost per person: $@averageCost.ToString("0.00")</p>
+        <p>Rating: @averageRating/5</p>
+    </div>
+}
+else
+{
+    <p>Loading stats...</p>
+}
+
+@code {
+    bool statsLoaded = false;
+    bool hasVegetarian = false;
+    double averageCost = 0;
+    double averageRating = 0;
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            // --- Load MenuItems.csv ---
+            var menuFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\Data\MenuItems.csv");
+            var menuItems = new List<(string Category, double Price)>();
+
+            using (var stream = File.OpenRead(menuFile))
+            using (var reader = new StreamReader(stream))
+            {
+                while (!reader.EndOfStream)
+                {
+                    var line = reader.ReadLine();
+                    if (string.IsNullOrWhiteSpace(line) || line.StartsWith("ID")) continue;
+
+                    var parts = line.Split(',');
+                    if (parts.Length < 4) continue;
+
+                    var category = parts[2].Trim();
+                    var priceStr = parts[3].Trim().Replace("$", "");
+                    if (double.TryParse(priceStr, out double price))
+                    {
+                        menuItems.Add((category, price));
+                    }
+                }
+            }
+
+            hasVegetarian = menuItems.Any(i => i.Category.Equals("Vegetarian", StringComparison.OrdinalIgnoreCase));
+            averageCost = menuItems.Any() ? Math.Round(menuItems.Average(i => i.Price), 2) : 0;
+
+            // --- Load Customers.csv ---
+            var customerFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\Data\Customers.csv");
+            var ratings = new List<double>();
+
+            using (var stream = File.OpenRead(customerFile))
+            using (var reader = new StreamReader(stream))
+            {
+                while (!reader.EndOfStream)
+                {
+                    var line = reader.ReadLine();
+                    if (string.IsNullOrWhiteSpace(line) || line.StartsWith("ID")) continue;
+
+                    var parts = line.Split(',');
+                    if (parts.Length < 4) continue;
+
+                    if (double.TryParse(parts[3].Trim(), out double rating))
+                    {
+                        ratings.Add(rating);
+                    }
+                }
+            }
+
+            averageRating = ratings.Any() ? Math.Round(ratings.Average(), 1) : 0;
+
+            statsLoaded = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading stats: {ex.Message}");
+        }
+    }
+}

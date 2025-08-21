@@ -528,5 +528,6 @@ C:\Users\jakob\source\repos\Group10_FinalProject\obj\Debug\net9.0-windows10.0.19
 C:\Users\jakob\source\repos\Group10_FinalProject\obj\Debug\net9.0-windows10.0.19041.0\win10-x64\qualifiers.txt
 C:\Users\jakob\source\repos\Group10_FinalProject\obj\Debug\net9.0-windows10.0.19041.0\win10-x64\qualifiers.txt.intermediate
 C:\Users\jakob\source\repos\Group10_FinalProject\obj\Debug\net9.0-windows10.0.19041.0\win10-x64\MultipleQualifiersPerDimensionFound.txt
-C:\Users\jakob\source\repos\Group10_FinalProject\obj\Debug\net9.0-windows10.0.19041.0\win10-x64\compressed\wy49hf5wyi-g9q2kq3tpi.gz
-C:\Users\jakob\source\repos\Group10_FinalProject\obj\Debug\net9.0-windows10.0.19041.0\win10-x64\compressed\publish\wy49hf5wyi-g9q2kq3tpi.br
+C:\Users\jakob\source\repos\Group10_FinalProject\obj\Debug\net9.0-windows10.0.19041.0\win10-x64\Group10_FinalProject.sourcelink.json
+C:\Users\jakob\source\repos\Group10_FinalProject\obj\Debug\net9.0-windows10.0.19041.0\win10-x64\compressed\wy49hf5wyi-2lmjx3gaio.gz
+C:\Users\jakob\source\repos\Group10_FinalProject\obj\Debug\net9.0-windows10.0.19041.0\win10-x64\compressed\publish\wy49hf5wyi-2lmjx3gaio.br

@@ -2,6 +2,15 @@
 
 <h1>The Gilded Fork - Our Menu</h1>
 
+<div class="sort-box">
+    <h3>Sort By</h3>
+    <input type="checkbox" @bind="filterVegetarian" id="vegCheck" />
+    <label for="vegCheck">Vegetarian</label><br />
+
+    <input type="checkbox" @bind="sortByCost" id="costCheck" />
+    <label for="costCheck">Cost (Low to High)</label>
+</div>
+
 <div class="menu-list">
     @if (menuItems.Count == 0)
     {
@@ -9,7 +18,7 @@
     }
     else
     {
-        @foreach (var item in menuItems)
+        @foreach (var item in FilteredMenuItems)
         {
             <div class="menu-card">
                 <h2>@item.Name</h2>
@@ -21,21 +30,51 @@
 </div>
 
 @code {
+    // Base class
     class MenuItem
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public string? Category { get; set; }
         public string Price { get; set; }
+        public virtual string Category { get; set; } = null!;
+
+        // Helper to get numeric price
+        public double NumericPrice => double.TryParse(Price.Replace("$", ""), out var val) ? val : 0;
+    }
+
+    // Derived class for Vegetarian items
+    class VegetarianItem : MenuItem
+    {
+        public override string Category { get; set; } = "Vegetarian";
     }
 
     List<MenuItem> menuItems = new();
+
+    // Filter/Sort states
+    bool filterVegetarian = false;
+    bool sortByCost = false;
+
+    // Computed property for filtered/sorted items
+    IEnumerable<MenuItem> FilteredMenuItems
+    {
+        get
+        {
+            var items = menuItems.AsEnumerable();
+
+            if (filterVegetarian)
+                items = items.Where(i => i is VegetarianItem);
+
+            if (sortByCost)
+                items = items.OrderBy(i => i.NumericPrice).ThenBy(i => i.Name);
+
+            return items;
+        }
+    }
 
     protected override void OnInitialized()
     {
         try
         {
-            // Adjust relative path to point to your Data folder
             var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\Data\MenuItems.csv");
 
             using var stream = File.OpenRead(filePath);
@@ -44,19 +83,24 @@
             while (!reader.EndOfStream)
             {
                 var line = reader.ReadLine();
-                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("ID"))
-                    continue;
+                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("ID")) continue;
 
                 var parts = line.Split(',');
                 if (parts.Length >= 4)
                 {
-                    menuItems.Add(new MenuItem
-                        {
-                            Id = int.Parse(parts[0].Trim()),
-                            Name = parts[1].Trim(),
-                            Category = parts[2].Trim().Equals("Null", StringComparison.OrdinalIgnoreCase) ? null : parts[2].Trim(),
-                            Price = parts[3].Trim()
-                        });
+                    MenuItem item;
+
+                    var category = parts[2].Trim();
+                    if (category.Equals("Vegetarian", StringComparison.OrdinalIgnoreCase))
+                        item = new VegetarianItem();
+                    else
+                        item = new MenuItem();
+
+                    item.Id = int.Parse(parts[0].Trim());
+                    item.Name = parts[1].Trim();
+                    item.Price = parts[3].Trim();
+
+                    menuItems.Add(item);
                 }
             }
         }

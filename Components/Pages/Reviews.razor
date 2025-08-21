@@ -2,7 +2,7 @@
 
 <h2>Customer Reviews</h2>
 
-@if (reviews == null)
+@if (reviews == null || reviews.Count == 0)
 {
     <p>Loading reviews...</p>
 }
@@ -12,23 +12,53 @@ else
         @foreach (var review in reviews)
         {
             <div class="review-box">
-                <strong>@review.Name</strong><br />
+                <strong>@review.GetDisplayName()</strong><br />
                 <span class="review-text">@review.Text</span><br />
-                <span class="review-rating">@review.Rating/5</span>
+                <span class="review-rating">@review.GetRatingDisplay()/5</span>
             </div>
         }
     </div>
 }
 
+<!-- Larger divider -->
+<hr class="divider" />
+
+<div class="add-review-box">
+    <h3>Add A Review</h3>
+
+    <label>Name:</label><br />
+    <input type="text" @bind="newName" /><br />
+
+    <label>Review:</label><br />
+    <textarea @bind="newText"></textarea><br />
+
+    <label>Rating (0-5):</label><br />
+    <input type="number" @bind="newRating" min="0" max="5" step="1" /><br /><br />
+
+    <button @onclick="SubmitReview">Submit Review</button>
+
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <p>@message</p>
+    }
+</div>
+
 @code {
-    private List<CustomerReview> reviews;
+    private List<IReview> reviews;
+    private string newName = "";
+    private string newText = "";
+    private int newRating;
+    private string message = "";
+    private string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\Data\Customers.csv");
 
     protected override void OnInitialized()
     {
-        reviews = new List<CustomerReview>();
+        LoadReviews();
+    }
 
-        // Adjust path to point to your Data folder
-        var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\Data\Customers.csv");
+    private void LoadReviews()
+    {
+        reviews = new List<IReview>();
 
         if (System.IO.File.Exists(filePath))
         {
@@ -40,13 +70,18 @@ else
 
                 if (parts.Length == 4)
                 {
-                    reviews.Add(new CustomerReview
-                        {
-                            Id = int.Parse(parts[0]),
-                            Name = parts[1],
-                            Text = parts[2],
-                            Rating = parts[3]
-                        });
+                    IReview review;
+                    if (parts[1].Trim().EndsWith("*"))
+                        review = new VerifiedCustomerReview();
+                    else
+                        review = new NormalCustomerReview();
+
+                    review.Id = int.Parse(parts[0].Trim());
+                    review.Name = parts[1].Trim();
+                    review.Text = parts[2].Trim();
+                    review.Rating = int.Parse(parts[3].Trim());
+
+                    reviews.Add(review);
                 }
             }
         }
@@ -56,11 +91,92 @@ else
         }
     }
 
-    public class CustomerReview
+    private void SubmitReview()
+    {
+        // Validate inputs
+        if (string.IsNullOrWhiteSpace(newName) || string.IsNullOrWhiteSpace(newText) || newRating < 0 || newRating > 5)
+        {
+            message = "Please fill out all fields correctly. Rating must be between 0 and 5.";
+            return;
+        }
+
+        int nextId = reviews.Any() ? reviews.Max(r => r.Id) + 1 : 1;
+
+        IReview review;
+        if (newName.Trim().EndsWith("*"))
+            review = new VerifiedCustomerReview();
+        else
+            review = new NormalCustomerReview();
+
+        review.Id = nextId;
+        review.Name = newName.Trim();
+        review.Text = newText.Trim();
+        review.Rating = newRating;
+
+        try
+        {
+            var line = $"{review.Id},{review.Name},{review.Text},{review.Rating}";
+
+            if (System.IO.File.Exists(filePath))
+            {
+                // Check if the file ends with a newline
+                var fileBytes = System.IO.File.ReadAllBytes(filePath);
+                if (fileBytes.Length > 0 && fileBytes[fileBytes.Length - 1] != 10 && fileBytes[fileBytes.Length - 1] != 13)
+                {
+                    // File does not end with newline, prepend one
+                    line = Environment.NewLine + line;
+                }
+            }
+
+            System.IO.File.AppendAllText(filePath, line);
+
+            reviews.Add(review);
+
+            // Clear form
+            newName = "";
+            newText = "";
+            newRating = 0;
+            message = "Review submitted successfully!";
+        }
+        catch (Exception ex)
+        {
+            message = $"Error submitting review: {ex.Message}";
+        }
+    }
+
+    // Interface for review behavior
+    public interface IReview
+    {
+        int Id { get; set; }
+        string Name { get; set; }
+        string Text { get; set; }
+        int Rating { get; set; }
+
+        string GetDisplayName();
+        string GetRatingDisplay();
+    }
+
+    // Abstract base class
+    public abstract class BaseCustomerReview : IReview
     {
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string Text { get; set; }
-        public string Rating { get; set; }
+        public string Name { get; set; } = null!;
+        public string Text { get; set; } = null!;
+        public int Rating { get; set; }
+
+        public abstract string GetDisplayName();
+        public string GetRatingDisplay() => Rating.ToString();
+    }
+
+    // Normal customer review
+    public class NormalCustomerReview : BaseCustomerReview
+    {
+        public override string GetDisplayName() => Name;
+    }
+
+    // Verified customer review
+    public class VerifiedCustomerReview : BaseCustomerReview
+    {
+        public override string GetDisplayName() => Name + " ✅";
     }
 }
